@@ -1,13 +1,6 @@
 import wikipediaapi
-
-class Title:
-    def __init__(self, title: str, text: str, level: int) -> None:
-        self.title = title
-        self.level = level
-        self.text = text
-    
-    def __str__(self):
-        return f'{self.title}: {self.text[:40]}...'
+from title import Title
+import video_assembler
 
 TITLE_LIST = []
 
@@ -17,24 +10,31 @@ def decode(sections: wikipediaapi.WikipediaPageSection, level=0):
         decode(section.sections, level+1)
 
 
-article_name = input("Qual artigo da wikipedia você quer ler?\n: ")
+if __name__ == "__main__":
+    article_name = input("Qual artigo da wikipedia você quer ler?\n: ")
 
-wiki_wiki = wikipediaapi.Wikipedia('pt')
+    wiki_wiki = wikipediaapi.Wikipedia('pt')
 
-page = wiki_wiki.page(article_name)
+    page = wiki_wiki.page(article_name)
 
-if page.exists():
-    print("A página existe.")
-    print("Seu sumário é: \n"+page.summary[:280], end='')
-    if len(page.summary) > 60:
-        print("...")
-    print("\n-----\n")
-    print(f"Sua url é: {page.fullurl}")
-    print("\n-----\n")
-    print("Suas seções são:")
-    decode(page.sections)
-    for title in TITLE_LIST:
-        print("\t"*title.level,title)
+    if page.exists():
+        print("A página existe.")
+        print("Seu sumário é: \n"+page.summary[:280], end='')
+        if len(page.summary) > 60:
+            print("...")
+        print("-----")
+        print(f"Sua url é: {page.fullurl}")
+        print("-----")
+        print("Suas seções são:")
 
-else:
-    print("A página não existe.")
+        TITLE_LIST.append(Title(page.title, page.summary, 0))
+
+        decode(page.sections)
+
+        
+        for title in TITLE_LIST:
+            print("\t"*title.level,title)
+            video_assembler.generate_video(title)
+
+    else:
+        print("A página não existe.")
